@@ -1,0 +1,6 @@
+pygame
+python-opencv
+numpy
+scipy
+shapely
+pytesseract
