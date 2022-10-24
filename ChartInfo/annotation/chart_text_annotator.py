@@ -1,4 +1,3 @@
-
 import numpy as np
 import cv2
 from scipy.spatial import distance as dist
@@ -26,6 +25,7 @@ from ChartInfo.annotation.base_image_annotator import BaseImageAnnotator
 
 from ChartInfo.data.text_info import TextInfo
 
+
 class ChartTextAnnotator(BaseImageAnnotator):
     ModeNavigate = 0
     ModeAddingTextSelect = 1
@@ -47,21 +47,31 @@ class ChartTextAnnotator(BaseImageAnnotator):
     TightQuadMargin = 4
 
     def __init__(self, size, panel_image, panel_info, parent_screen, admin_mode):
-        BaseImageAnnotator.__init__(self, "Chart Text Ground Truth Annotation Interface", size)
+        BaseImageAnnotator.__init__(
+            self, "Chart Text Ground Truth Annotation Interface", size
+        )
 
         self.base_rgb_image = panel_image
-        self.base_gray_image = np.zeros(self.base_rgb_image.shape, self.base_rgb_image.dtype)
-        self.base_gray_image[:, :, 0] = cv2.cvtColor(self.base_rgb_image, cv2.COLOR_RGB2GRAY)
+        self.base_gray_image = np.zeros(
+            self.base_rgb_image.shape, self.base_rgb_image.dtype
+        )
+        self.base_gray_image[:, :, 0] = cv2.cvtColor(
+            self.base_rgb_image, cv2.COLOR_RGB2GRAY
+        )
         self.base_gray_image[:, :, 1] = self.base_gray_image[:, :, 0].copy()
         self.base_gray_image[:, :, 2] = self.base_gray_image[:, :, 0].copy()
 
-        otsu_t, binarized = cv2.threshold(self.base_gray_image[:, :, 0], 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        otsu_t, binarized = cv2.threshold(
+            self.base_gray_image[:, :, 0], 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
         self.panel_binary = 255 - binarized
 
         self.panel_info = panel_info
 
         # working copy ...
-        self.text_regions = [TextInfo.Copy(text_info) for text_info in self.panel_info.text]
+        self.text_regions = [
+            TextInfo.Copy(text_info) for text_info in self.panel_info.text
+        ]
 
         self.parent_screen = parent_screen
         self.admin_mode = admin_mode
@@ -158,9 +168,14 @@ class ChartTextAnnotator(BaseImageAnnotator):
         container_width = 300
 
         # Main Title
-        self.label_title = ScreenLabel("title", "Chart Image Annotation Tool - Panel Text Annotation", 28)
+        self.label_title = ScreenLabel(
+            "title", "Chart Image Annotation Tool - Panel Text Annotation", 28
+        )
         self.label_title.background = self.general_background
-        self.label_title.position = (int((self.width - container_width - self.label_title.width) / 2), 20)
+        self.label_title.position = (
+            int((self.width - container_width - self.label_title.width) / 2),
+            20,
+        )
         self.label_title.set_color(self.text_color)
         self.elements.append(self.label_title)
 
@@ -175,26 +190,39 @@ class ChartTextAnnotator(BaseImageAnnotator):
         button_2_right = int(container_width * 0.75) - button_2_width / 2
 
         button_4_width = 65
-        button_4_1 = int(container_width * (1/8)) - button_4_width / 2
-        button_4_2 = int(container_width * (3/8)) - button_4_width / 2
-        button_4_3 = int(container_width * (5/8)) - button_4_width / 2
-        button_4_4 = int(container_width * (7/8)) - button_4_width / 2
+        button_4_1 = int(container_width * (1 / 8)) - button_4_width / 2
+        button_4_2 = int(container_width * (3 / 8)) - button_4_width / 2
+        button_4_3 = int(container_width * (5 / 8)) - button_4_width / 2
+        button_4_4 = int(container_width * (7 / 8)) - button_4_width / 2
 
         # ===========================
         # View Options Panel
-        self.create_image_annotator_controls(container_top, container_width, self.general_background, self.text_color,
-                                             button_text_color, button_back_color)
+        self.create_image_annotator_controls(
+            container_top,
+            container_width,
+            self.general_background,
+            self.text_color,
+            button_text_color,
+            button_back_color,
+        )
 
         # ===========================
         # confirmation panel
-        self.container_confirm_buttons = ScreenContainer("container_confirm_buttons", (container_width, 70),
-                                                         back_color=self.general_background)
+        self.container_confirm_buttons = ScreenContainer(
+            "container_confirm_buttons",
+            (container_width, 70),
+            back_color=self.general_background,
+        )
         self.container_confirm_buttons.position = (
-            self.width - self.container_confirm_buttons.width - 10, self.container_view_buttons.get_bottom() + 20)
+            self.width - self.container_confirm_buttons.width - 10,
+            self.container_view_buttons.get_bottom() + 20,
+        )
         self.elements.append(self.container_confirm_buttons)
         self.container_confirm_buttons.visible = False
 
-        self.lbl_confirm_message = ScreenLabel("lbl_confirm_message", "Confirmation message goes here?", 21, 290, 1)
+        self.lbl_confirm_message = ScreenLabel(
+            "lbl_confirm_message", "Confirmation message goes here?", 21, 290, 1
+        )
         self.lbl_confirm_message.position = (5, 5)
         self.lbl_confirm_message.set_background(self.general_background)
         self.lbl_confirm_message.set_color(self.text_color)
@@ -202,29 +230,39 @@ class ChartTextAnnotator(BaseImageAnnotator):
 
         self.btn_confirm_cancel = ScreenButton("btn_confirm_cancel", "Cancel", 21, 130)
         self.btn_confirm_cancel.set_colors(button_text_color, button_back_color)
-        self.btn_confirm_cancel.position = (10, self.lbl_confirm_message.get_bottom() + 10)
+        self.btn_confirm_cancel.position = (
+            10,
+            self.lbl_confirm_message.get_bottom() + 10,
+        )
         self.btn_confirm_cancel.click_callback = self.btn_confirm_cancel_click
         self.container_confirm_buttons.append(self.btn_confirm_cancel)
 
         self.btn_confirm_accept = ScreenButton("btn_confirm_accept", "Accept", 21, 130)
         self.btn_confirm_accept.set_colors(button_text_color, button_back_color)
-        self.btn_confirm_accept.position = (self.container_confirm_buttons.width - self.btn_confirm_accept.width - 10,
-                                            self.lbl_confirm_message.get_bottom() + 10)
+        self.btn_confirm_accept.position = (
+            self.container_confirm_buttons.width - self.btn_confirm_accept.width - 10,
+            self.lbl_confirm_message.get_bottom() + 10,
+        )
         self.btn_confirm_accept.click_callback = self.btn_confirm_accept_click
         self.container_confirm_buttons.append(self.btn_confirm_accept)
 
         # ===========================
         # admin confirmation panel
-        self.container_admin_confirm_buttons = ScreenContainer("container_admin_confirm_buttons",
-                                                               (container_width, 270),
-                                                               back_color=self.general_background)
-        self.container_admin_confirm_buttons.position = (self.width - self.container_admin_confirm_buttons.width - 10,
-                                                         self.container_view_buttons.get_bottom() + 20)
+        self.container_admin_confirm_buttons = ScreenContainer(
+            "container_admin_confirm_buttons",
+            (container_width, 270),
+            back_color=self.general_background,
+        )
+        self.container_admin_confirm_buttons.position = (
+            self.width - self.container_admin_confirm_buttons.width - 10,
+            self.container_view_buttons.get_bottom() + 20,
+        )
         self.elements.append(self.container_admin_confirm_buttons)
         self.container_admin_confirm_buttons.visible = True
 
-        self.lbl_admin_confirm_message = ScreenLabel("lbl_admin_confirm_message", "Confirmation message goes here?", 21,
-                                                     290, 1)
+        self.lbl_admin_confirm_message = ScreenLabel(
+            "lbl_admin_confirm_message", "Confirmation message goes here?", 21, 290, 1
+        )
         self.lbl_admin_confirm_message.position = (5, 5)
         self.lbl_admin_confirm_message.set_background(self.general_background)
         self.lbl_admin_confirm_message.set_color(self.text_color)
@@ -232,56 +270,113 @@ class ChartTextAnnotator(BaseImageAnnotator):
 
         btn_width = 210
         btn_left = int((self.container_admin_confirm_buttons.width - btn_width) / 2)
-        self.btn_admin_confirm_cancel = ScreenButton("btn_admin_confirm_cancel", "Cancel", 21, btn_width)
+        self.btn_admin_confirm_cancel = ScreenButton(
+            "btn_admin_confirm_cancel", "Cancel", 21, btn_width
+        )
         self.btn_admin_confirm_cancel.set_colors(button_text_color, button_back_color)
-        self.btn_admin_confirm_cancel.position = (btn_left, self.lbl_admin_confirm_message.get_bottom() + 10)
-        self.btn_admin_confirm_cancel.click_callback = self.btn_admin_confirm_cancel_click
+        self.btn_admin_confirm_cancel.position = (
+            btn_left,
+            self.lbl_admin_confirm_message.get_bottom() + 10,
+        )
+        self.btn_admin_confirm_cancel.click_callback = (
+            self.btn_admin_confirm_cancel_click
+        )
         self.container_admin_confirm_buttons.append(self.btn_admin_confirm_cancel)
 
-        self.btn_admin_confirm_keep_none = ScreenButton("btn_admin_confirm_keep_none", "Keep None", 21, btn_width)
-        self.btn_admin_confirm_keep_none.set_colors(button_text_color, button_back_color)
-        self.btn_admin_confirm_keep_none.position = (btn_left, self.btn_admin_confirm_cancel.get_bottom() + 10)
-        self.btn_admin_confirm_keep_none.click_callback = self.btn_admin_confirm_keep_none_click
+        self.btn_admin_confirm_keep_none = ScreenButton(
+            "btn_admin_confirm_keep_none", "Keep None", 21, btn_width
+        )
+        self.btn_admin_confirm_keep_none.set_colors(
+            button_text_color, button_back_color
+        )
+        self.btn_admin_confirm_keep_none.position = (
+            btn_left,
+            self.btn_admin_confirm_cancel.get_bottom() + 10,
+        )
+        self.btn_admin_confirm_keep_none.click_callback = (
+            self.btn_admin_confirm_keep_none_click
+        )
         self.container_admin_confirm_buttons.append(self.btn_admin_confirm_keep_none)
 
-        self.btn_admin_confirm_keep_legend = ScreenButton("btn_admin_confirm_keep_legend", "Keep Legend", 21, btn_width)
-        self.btn_admin_confirm_keep_legend.set_colors(button_text_color, button_back_color)
-        self.btn_admin_confirm_keep_legend.position = (btn_left, self.btn_admin_confirm_keep_none.get_bottom() + 10)
-        self.btn_admin_confirm_keep_legend.click_callback = self.btn_admin_confirm_keep_legend_click
+        self.btn_admin_confirm_keep_legend = ScreenButton(
+            "btn_admin_confirm_keep_legend", "Keep Legend", 21, btn_width
+        )
+        self.btn_admin_confirm_keep_legend.set_colors(
+            button_text_color, button_back_color
+        )
+        self.btn_admin_confirm_keep_legend.position = (
+            btn_left,
+            self.btn_admin_confirm_keep_none.get_bottom() + 10,
+        )
+        self.btn_admin_confirm_keep_legend.click_callback = (
+            self.btn_admin_confirm_keep_legend_click
+        )
         self.container_admin_confirm_buttons.append(self.btn_admin_confirm_keep_legend)
 
-        self.btn_admin_confirm_keep_axes = ScreenButton("btn_admin_confirm_keep_axes", "Keep Legend and Axes", 21, btn_width)
-        self.btn_admin_confirm_keep_axes.set_colors(button_text_color, button_back_color)
-        self.btn_admin_confirm_keep_axes.position = (btn_left, self.btn_admin_confirm_keep_legend.get_bottom() + 10)
-        self.btn_admin_confirm_keep_axes.click_callback = self.btn_admin_confirm_keep_axes_click
+        self.btn_admin_confirm_keep_axes = ScreenButton(
+            "btn_admin_confirm_keep_axes", "Keep Legend and Axes", 21, btn_width
+        )
+        self.btn_admin_confirm_keep_axes.set_colors(
+            button_text_color, button_back_color
+        )
+        self.btn_admin_confirm_keep_axes.position = (
+            btn_left,
+            self.btn_admin_confirm_keep_legend.get_bottom() + 10,
+        )
+        self.btn_admin_confirm_keep_axes.click_callback = (
+            self.btn_admin_confirm_keep_axes_click
+        )
         self.container_admin_confirm_buttons.append(self.btn_admin_confirm_keep_axes)
 
-        self.btn_admin_confirm_keep_all = ScreenButton("btn_admin_confirm_keep_all", "Keep Everything", 21, btn_width)
+        self.btn_admin_confirm_keep_all = ScreenButton(
+            "btn_admin_confirm_keep_all", "Keep Everything", 21, btn_width
+        )
         self.btn_admin_confirm_keep_all.set_colors(button_text_color, button_back_color)
-        self.btn_admin_confirm_keep_all.position = (btn_left, self.btn_admin_confirm_keep_axes.get_bottom() + 10)
-        self.btn_admin_confirm_keep_all.click_callback = self.btn_admin_confirm_keep_all_click
+        self.btn_admin_confirm_keep_all.position = (
+            btn_left,
+            self.btn_admin_confirm_keep_axes.get_bottom() + 10,
+        )
+        self.btn_admin_confirm_keep_all.click_callback = (
+            self.btn_admin_confirm_keep_all_click
+        )
         self.container_admin_confirm_buttons.append(self.btn_admin_confirm_keep_all)
 
         # ===========================
         # general edition options
         darker_background = (100, 66, 30)
-        self.container_text_options = ScreenContainer("container_text_options", (container_width, 600),
-                                                      back_color=darker_background)
-        self.container_text_options.position = (self.container_view_buttons.get_left(), self.container_view_buttons.get_bottom() + 20)
+        self.container_text_options = ScreenContainer(
+            "container_text_options",
+            (container_width, 600),
+            back_color=darker_background,
+        )
+        self.container_text_options.position = (
+            self.container_view_buttons.get_left(),
+            self.container_view_buttons.get_bottom() + 20,
+        )
         self.elements.append(self.container_text_options)
 
-        self.lbl_text_title = ScreenLabel("lbl_text_title", "Options for Text Annotation", 21, 290, 1)
+        self.lbl_text_title = ScreenLabel(
+            "lbl_text_title", "Options for Text Annotation", 21, 290, 1
+        )
         self.lbl_text_title.position = (5, 5)
         self.lbl_text_title.set_background(darker_background)
         self.lbl_text_title.set_color(self.text_color)
         self.container_text_options.append(self.lbl_text_title)
 
-        self.lbx_text_list = ScreenTextlist("lbx_text_list", (container_width - 20, 350), 18, back_color=(255,255,255),
-                                            option_color=(0, 0, 0), selected_back=(120, 80, 50),
-                                            selected_color=(255, 255, 255))
+        self.lbx_text_list = ScreenTextlist(
+            "lbx_text_list",
+            (container_width - 20, 350),
+            18,
+            back_color=(255, 255, 255),
+            option_color=(0, 0, 0),
+            selected_back=(120, 80, 50),
+            selected_color=(255, 255, 255),
+        )
         self.lbx_text_list.position = (10, self.lbl_text_title.get_bottom() + 10)
         self.lbx_text_list.option_padding = 0
-        self.lbx_text_list.selected_value_change_callback = self.lbx_text_list_option_changed
+        self.lbx_text_list.selected_value_change_callback = (
+            self.lbx_text_list_option_changed
+        )
         self.container_text_options.append(self.lbx_text_list)
 
         self.btn_text_add = ScreenButton("btn_text_add", "Add", 21, 90)
@@ -292,42 +387,64 @@ class ChartTextAnnotator(BaseImageAnnotator):
 
         self.btn_text_edit = ScreenButton("btn_text_edit", "Edit", 21, 90)
         self.btn_text_edit.set_colors(button_text_color, button_back_color)
-        self.btn_text_edit.position = ((self.container_text_options.width - self.btn_text_edit.width) / 2,
-                                       self.lbx_text_list.get_bottom() + 10)
+        self.btn_text_edit.position = (
+            (self.container_text_options.width - self.btn_text_edit.width) / 2,
+            self.lbx_text_list.get_bottom() + 10,
+        )
         self.btn_text_edit.click_callback = self.btn_text_edit_click
         self.container_text_options.append(self.btn_text_edit)
 
         self.btn_text_delete = ScreenButton("btn_text_delete", "Delete", 21, 90)
         self.btn_text_delete.set_colors(button_text_color, button_back_color)
-        self.btn_text_delete.position = (self.container_text_options.width - self.btn_text_delete.width - 10,
-                                           self.lbx_text_list.get_bottom() + 10)
+        self.btn_text_delete.position = (
+            self.container_text_options.width - self.btn_text_delete.width - 10,
+            self.lbx_text_list.get_bottom() + 10,
+        )
         self.btn_text_delete.click_callback = self.btn_text_delete_click
         self.container_text_options.append(self.btn_text_delete)
 
-        self.btn_text_tighten_boxes = ScreenButton("btn_text_tighten_boxes", "Tighten Boxes", 21, 90)
+        self.btn_text_tighten_boxes = ScreenButton(
+            "btn_text_tighten_boxes", "Tighten Boxes", 21, 90
+        )
         self.btn_text_tighten_boxes.set_colors(button_text_color, button_back_color)
         self.btn_text_tighten_boxes.position = (10, self.btn_text_add.get_bottom() + 10)
         self.btn_text_tighten_boxes.click_callback = self.btn_text_tighten_boxes_click
         self.container_text_options.append(self.btn_text_tighten_boxes)
 
-        self.btn_return_accept = ScreenButton("btn_return_accept", "Accept", 21, button_2_width)
+        self.btn_return_accept = ScreenButton(
+            "btn_return_accept", "Accept", 21, button_2_width
+        )
         self.btn_return_accept.set_colors(button_text_color, button_back_color)
-        self.btn_return_accept.position = (button_2_left, self.container_text_options.height - self.btn_return_accept.height - 10)
+        self.btn_return_accept.position = (
+            button_2_left,
+            self.container_text_options.height - self.btn_return_accept.height - 10,
+        )
         self.btn_return_accept.click_callback = self.btn_return_accept_click
         self.container_text_options.append(self.btn_return_accept)
 
-        self.btn_return_cancel = ScreenButton("btn_return_cancel", "Cancel", 21, button_2_width)
+        self.btn_return_cancel = ScreenButton(
+            "btn_return_cancel", "Cancel", 21, button_2_width
+        )
         self.btn_return_cancel.set_colors(button_text_color, button_back_color)
-        self.btn_return_cancel.position = (button_2_right, self.container_text_options.height - self.btn_return_cancel.height - 10)
+        self.btn_return_cancel.position = (
+            button_2_right,
+            self.container_text_options.height - self.btn_return_cancel.height - 10,
+        )
         self.btn_return_cancel.click_callback = self.btn_return_cancel_click
         self.container_text_options.append(self.btn_return_cancel)
 
         # =============================================================
         # options for editing a given text
 
-        self.container_edit_options = ScreenContainer("container_edit_options", (container_width, 600),
-                                                      back_color=darker_background)
-        self.container_edit_options.position = (self.container_view_buttons.get_left(), self.container_view_buttons.get_bottom() + 20)
+        self.container_edit_options = ScreenContainer(
+            "container_edit_options",
+            (container_width, 600),
+            back_color=darker_background,
+        )
+        self.container_edit_options.position = (
+            self.container_view_buttons.get_left(),
+            self.container_view_buttons.get_bottom() + 20,
+        )
         self.elements.append(self.container_edit_options)
 
         self.lbl_edit_title = ScreenLabel("lbl_edit_title", "Editing Text", 21, 290, 1)
@@ -336,108 +453,194 @@ class ChartTextAnnotator(BaseImageAnnotator):
         self.lbl_edit_title.set_color(self.text_color)
         self.container_edit_options.append(self.lbl_edit_title)
 
-        self.lbx_edit_type = ScreenTextlist("lbx_edit_type", (button_2_width, 280), 18, back_color=(255,255,255),
-                                            option_color=(0, 0, 0), selected_back=(120, 80, 50),
-                                            selected_color=(255, 255, 255))
+        self.lbx_edit_type = ScreenTextlist(
+            "lbx_edit_type",
+            (button_2_width, 280),
+            18,
+            back_color=(255, 255, 255),
+            option_color=(0, 0, 0),
+            selected_back=(120, 80, 50),
+            selected_color=(255, 255, 255),
+        )
         self.lbx_edit_type.position = (10, self.lbl_edit_title.get_bottom() + 10)
         self.lbx_edit_type.option_padding = -5
         self.container_edit_options.append(self.lbx_edit_type)
         self.add_text_types()
 
-        self.btn_edit_force_box = ScreenButton("btn_edit_force_box", "Force Box", 21, button_2_width)
+        self.btn_edit_force_box = ScreenButton(
+            "btn_edit_force_box", "Force Box", 21, button_2_width
+        )
         self.btn_edit_force_box.set_colors(button_text_color, button_back_color)
-        self.btn_edit_force_box.position = (button_2_right, self.lbl_edit_title.get_bottom() + 10)
+        self.btn_edit_force_box.position = (
+            button_2_right,
+            self.lbl_edit_title.get_bottom() + 10,
+        )
         self.btn_edit_force_box.click_callback = self.btn_edit_force_box_click
         self.container_edit_options.append(self.btn_edit_force_box)
 
-        self.btn_edit_force_quad = ScreenButton("btn_edit_force_quad", "Force Quad", 21, button_2_width)
+        self.btn_edit_force_quad = ScreenButton(
+            "btn_edit_force_quad", "Force Quad", 21, button_2_width
+        )
         self.btn_edit_force_quad.set_colors(button_text_color, button_back_color)
-        self.btn_edit_force_quad.position = (button_2_right, self.btn_edit_force_box.get_bottom() + 10)
+        self.btn_edit_force_quad.position = (
+            button_2_right,
+            self.btn_edit_force_box.get_bottom() + 10,
+        )
         self.btn_edit_force_quad.click_callback = self.btn_edit_force_quad_click
         self.container_edit_options.append(self.btn_edit_force_quad)
 
-        self.btn_edit_shrink_box = ScreenButton("btn_edit_shrink_box", "Shrink Box", 21, button_2_width)
+        self.btn_edit_shrink_box = ScreenButton(
+            "btn_edit_shrink_box", "Shrink Box", 21, button_2_width
+        )
         self.btn_edit_shrink_box.set_colors(button_text_color, button_back_color)
-        self.btn_edit_shrink_box.position = (button_2_right, self.btn_edit_force_quad.get_bottom() + 10)
+        self.btn_edit_shrink_box.position = (
+            button_2_right,
+            self.btn_edit_force_quad.get_bottom() + 10,
+        )
         self.btn_edit_shrink_box.click_callback = self.btn_edit_shrink_box_click
         self.container_edit_options.append(self.btn_edit_shrink_box)
 
-        self.btn_edit_shrink_quad = ScreenButton("btn_edit_shrink_quad", "Shrink Quad", 21, button_2_width)
+        self.btn_edit_shrink_quad = ScreenButton(
+            "btn_edit_shrink_quad", "Shrink Quad", 21, button_2_width
+        )
         self.btn_edit_shrink_quad.set_colors(button_text_color, button_back_color)
-        self.btn_edit_shrink_quad.position = (button_2_right, self.btn_edit_shrink_box.get_bottom() + 10)
+        self.btn_edit_shrink_quad.position = (
+            button_2_right,
+            self.btn_edit_shrink_box.get_bottom() + 10,
+        )
         self.btn_edit_shrink_quad.click_callback = self.btn_edit_shrink_quad_click
         self.container_edit_options.append(self.btn_edit_shrink_quad)
 
-        self.lbl_edit_text = ScreenLabel("lbl_edit_text", "Transcription and OCR", 21, button_width, 1)
-        self.lbl_edit_text.position = (button_left, self.lbx_edit_type.get_bottom() + 20)
+        self.lbl_edit_text = ScreenLabel(
+            "lbl_edit_text", "Transcription and OCR", 21, button_width, 1
+        )
+        self.lbl_edit_text.position = (
+            button_left,
+            self.lbx_edit_type.get_bottom() + 20,
+        )
         self.lbl_edit_text.set_background(darker_background)
         self.lbl_edit_text.set_color(self.text_color)
         self.container_edit_options.append(self.lbl_edit_text)
 
         self.btn_edit_OCR_0 = ScreenButton("btn_edit_OCR_0", "R+0", 19, button_4_width)
         self.btn_edit_OCR_0.set_colors(button_text_color, button_back_color)
-        self.btn_edit_OCR_0.position = (button_4_1, self.lbl_edit_text.get_bottom() + 10)
+        self.btn_edit_OCR_0.position = (
+            button_4_1,
+            self.lbl_edit_text.get_bottom() + 10,
+        )
         self.btn_edit_OCR_0.click_callback = self.btn_edit_OCR_0_click
         self.container_edit_options.append(self.btn_edit_OCR_0)
 
-        self.btn_edit_OCR_any = ScreenButton("btn_edit_OCR_any", "R+?", 19, button_4_width)
+        self.btn_edit_OCR_any = ScreenButton(
+            "btn_edit_OCR_any", "R+?", 19, button_4_width
+        )
         self.btn_edit_OCR_any.set_colors(button_text_color, button_back_color)
-        self.btn_edit_OCR_any.position = (button_4_2, self.lbl_edit_text.get_bottom() + 10)
+        self.btn_edit_OCR_any.position = (
+            button_4_2,
+            self.lbl_edit_text.get_bottom() + 10,
+        )
         self.btn_edit_OCR_any.click_callback = self.btn_edit_OCR_any_click
         self.container_edit_options.append(self.btn_edit_OCR_any)
 
-        self.btn_edit_OCR_270 = ScreenButton("btn_edit_OCR_270", "R-90", 19, button_4_width)
+        self.btn_edit_OCR_270 = ScreenButton(
+            "btn_edit_OCR_270", "R-90", 19, button_4_width
+        )
         self.btn_edit_OCR_270.set_colors(button_text_color, button_back_color)
-        self.btn_edit_OCR_270.position = (button_4_3, self.lbl_edit_text.get_bottom() + 10)
+        self.btn_edit_OCR_270.position = (
+            button_4_3,
+            self.lbl_edit_text.get_bottom() + 10,
+        )
         self.btn_edit_OCR_270.click_callback = self.btn_edit_OCR_270_click
         self.container_edit_options.append(self.btn_edit_OCR_270)
 
-        self.btn_edit_OCR_90 = ScreenButton("btn_edit_OCR_90", "R+90", 19, button_4_width)
+        self.btn_edit_OCR_90 = ScreenButton(
+            "btn_edit_OCR_90", "R+90", 19, button_4_width
+        )
         self.btn_edit_OCR_90.set_colors(button_text_color, button_back_color)
-        self.btn_edit_OCR_90.position = (button_4_4, self.lbl_edit_text.get_bottom() + 10)
+        self.btn_edit_OCR_90.position = (
+            button_4_4,
+            self.lbl_edit_text.get_bottom() + 10,
+        )
         self.btn_edit_OCR_90.click_callback = self.btn_edit_OCR_90_click
         self.container_edit_options.append(self.btn_edit_OCR_90)
 
-        self.btn_edit_clear_text = ScreenButton("btn_edit_clear_text", "Clear", 19, button_4_width)
+        self.btn_edit_clear_text = ScreenButton(
+            "btn_edit_clear_text", "Clear", 19, button_4_width
+        )
         self.btn_edit_clear_text.set_colors(button_text_color, button_back_color)
-        self.btn_edit_clear_text.position = (button_4_1, self.btn_edit_OCR_270.get_bottom() + 10)
+        self.btn_edit_clear_text.position = (
+            button_4_1,
+            self.btn_edit_OCR_270.get_bottom() + 10,
+        )
         self.btn_edit_clear_text.click_callback = self.btn_edit_clear_text_click
         self.container_edit_options.append(self.btn_edit_clear_text)
 
-        self.btn_edit_copy_text = ScreenButton("btn_edit_copy_text", "Copy", 19, button_4_width)
+        self.btn_edit_copy_text = ScreenButton(
+            "btn_edit_copy_text", "Copy", 19, button_4_width
+        )
         self.btn_edit_copy_text.set_colors(button_text_color, button_back_color)
-        self.btn_edit_copy_text.position = (button_4_2, self.btn_edit_OCR_270.get_bottom() + 10)
+        self.btn_edit_copy_text.position = (
+            button_4_2,
+            self.btn_edit_OCR_270.get_bottom() + 10,
+        )
         self.btn_edit_copy_text.click_callback = self.btn_edit_copy_text_click
         self.container_edit_options.append(self.btn_edit_copy_text)
 
-        self.btn_edit_paste_text = ScreenButton("btn_edit_paste_text", "Paste", 19, button_4_width)
+        self.btn_edit_paste_text = ScreenButton(
+            "btn_edit_paste_text", "Paste", 19, button_4_width
+        )
         self.btn_edit_paste_text.set_colors(button_text_color, button_back_color)
-        self.btn_edit_paste_text.position = (button_4_3, self.btn_edit_OCR_270.get_bottom() + 10)
+        self.btn_edit_paste_text.position = (
+            button_4_3,
+            self.btn_edit_OCR_270.get_bottom() + 10,
+        )
         self.btn_edit_paste_text.click_callback = self.btn_edit_paste_text_click
         self.container_edit_options.append(self.btn_edit_paste_text)
 
-        self.sub_container_text = ScreenContainer("sub_container_text", (container_width - 10, 100),
-                                                  back_color=darker_background)
-        self.sub_container_text.position = (5, self.btn_edit_clear_text.get_bottom() + 5)
+        self.sub_container_text = ScreenContainer(
+            "sub_container_text",
+            (container_width - 10, 100),
+            back_color=darker_background,
+        )
+        self.sub_container_text.position = (
+            5,
+            self.btn_edit_clear_text.get_bottom() + 5,
+        )
         self.container_edit_options.append(self.sub_container_text)
 
-        self.txt_edit_text = ScreenTextbox("txt_edit_text", "", 24, container_width - 35,
-                                           text_color=(255, 255, 255), back_color=(0, 0, 0))
+        self.txt_edit_text = ScreenTextbox(
+            "txt_edit_text",
+            "",
+            24,
+            container_width - 35,
+            text_color=(255, 255, 255),
+            back_color=(0, 0, 0),
+        )
         self.txt_edit_text.position = (5, 5)
         self.txt_edit_text.max_length = 1024
         self.txt_edit_text.capture_EOL = True  # allow multi-line elements
         self.txt_edit_text.text_typed_callback = self.txt_edit_text_text_typed
         self.sub_container_text.append(self.txt_edit_text)
 
-        self.btn_edit_cancel = ScreenButton("btn_edit_cancel", "Cancel", 21, button_2_width)
+        self.btn_edit_cancel = ScreenButton(
+            "btn_edit_cancel", "Cancel", 21, button_2_width
+        )
         self.btn_edit_cancel.set_colors(button_text_color, button_back_color)
-        self.btn_edit_cancel.position = (button_2_right, self.container_edit_options.height - self.btn_edit_cancel.height - 10)
+        self.btn_edit_cancel.position = (
+            button_2_right,
+            self.container_edit_options.height - self.btn_edit_cancel.height - 10,
+        )
         self.btn_edit_cancel.click_callback = self.btn_edit_cancel_click
         self.container_edit_options.append(self.btn_edit_cancel)
 
-        self.btn_edit_accept = ScreenButton("btn_return_accept", "Accept", 21, button_2_width)
+        self.btn_edit_accept = ScreenButton(
+            "btn_return_accept", "Accept", 21, button_2_width
+        )
         self.btn_edit_accept.set_colors(button_text_color, button_back_color)
-        self.btn_edit_accept.position = (button_2_left, self.container_edit_options.height - self.btn_edit_accept.height - 10)
+        self.btn_edit_accept.position = (
+            button_2_left,
+            self.container_edit_options.height - self.btn_edit_accept.height - 10,
+        )
         self.btn_edit_accept.click_callback = self.btn_edit_accept_click
         self.container_edit_options.append(self.btn_edit_accept)
         self.container_edit_options.visible = False
@@ -460,15 +663,21 @@ class ChartTextAnnotator(BaseImageAnnotator):
         self.lbx_edit_type.add_option(str(TextInfo.TypeOther), "Other")
 
     def get_text_display(self, text):
-        return "{0:d} - {1:s}: {2:s}".format(text.id, text.get_type_description(), text.value)
+        return "{0:d} - {1:s}: {2:s}".format(
+            text.id, text.get_type_description(), text.value
+        )
 
     def add_text_regions(self):
         # populate the list-box using existing text regions (if any)
         for text in self.text_regions:
             self.lbx_text_list.add_option(str(text.id), self.get_text_display(text))
 
-            self.canvas_display.add_polygon_element(str(text.id), text.position_polygon.copy(),
-                                                    self.canvas_colors[text.type], self.canvas_sel_colors[text.type])
+            self.canvas_display.add_polygon_element(
+                str(text.id),
+                text.position_polygon.copy(),
+                self.canvas_colors[text.type],
+                self.canvas_sel_colors[text.type],
+            )
 
     def custom_view_update(self, modified_image):
         # TODO: show here any relevant annotations on the modified image ...
@@ -479,11 +688,15 @@ class ChartTextAnnotator(BaseImageAnnotator):
         self.edition_mode = new_mode
 
         # Navigation mode ...
-        self.container_text_options.visible = (self.edition_mode == ChartTextAnnotator.ModeNavigate)
+        self.container_text_options.visible = (
+            self.edition_mode == ChartTextAnnotator.ModeNavigate
+        )
 
         # Edit panels ...
-        self.container_edit_options.visible = self.edition_mode in [ChartTextAnnotator.ModeAddingTextEdit,
-                                                                    ChartTextAnnotator.ModeEditingText]
+        self.container_edit_options.visible = self.edition_mode in [
+            ChartTextAnnotator.ModeAddingTextEdit,
+            ChartTextAnnotator.ModeEditingText,
+        ]
 
         # Confirm panel and buttons  ...
         if self.edition_mode == ChartTextAnnotator.ModeConfirmOverwrite:
@@ -494,12 +707,16 @@ class ChartTextAnnotator(BaseImageAnnotator):
             else:
                 # for regular users
                 self.container_confirm_buttons.visible = True
-                self.lbl_confirm_message.set_text("Discarding Legend/Axis data, Proceed?")
+                self.lbl_confirm_message.set_text(
+                    "Discarding Legend/Axis data, Proceed?"
+                )
         else:
             self.container_admin_confirm_buttons.visible = False
-            self.container_confirm_buttons.visible = self.edition_mode in [ChartTextAnnotator.ModeAddingTextSelect,
-                                                                           ChartTextAnnotator.ModeConfirmDeleteText,
-                                                                           ChartTextAnnotator.ModeConfirmExit]
+            self.container_confirm_buttons.visible = self.edition_mode in [
+                ChartTextAnnotator.ModeAddingTextSelect,
+                ChartTextAnnotator.ModeConfirmDeleteText,
+                ChartTextAnnotator.ModeConfirmExit,
+            ]
 
         if self.edition_mode == ChartTextAnnotator.ModeAddingTextSelect:
             self.lbl_confirm_message.set_text("Select Text Location")
@@ -511,9 +728,14 @@ class ChartTextAnnotator(BaseImageAnnotator):
             self.lbl_confirm_message.set_text("Discard Changes to Text?")
 
         # Do not show accept at these steps (they can be implicitly accepted, but need explicit cancel button only)
-        self.btn_confirm_accept.visible = self.edition_mode != ChartTextAnnotator.ModeAddingTextSelect
+        self.btn_confirm_accept.visible = (
+            self.edition_mode != ChartTextAnnotator.ModeAddingTextSelect
+        )
 
-        if new_mode in [ChartTextAnnotator.ModeAddingTextEdit, ChartTextAnnotator.ModeEditingText]:
+        if new_mode in [
+            ChartTextAnnotator.ModeAddingTextEdit,
+            ChartTextAnnotator.ModeEditingText,
+        ]:
             # show polygon
             self.canvas_select.locked = False
             self.canvas_select.elements["selection_polygon"].visible = True
@@ -555,7 +777,9 @@ class ChartTextAnnotator(BaseImageAnnotator):
                 # for all other users, existing data will be discarded to ensure consistency
                 overwrite = True
 
-            self.panel_info.overwrite_text(self.text_regions, overwrite, overwrite, overwrite)
+            self.panel_info.overwrite_text(
+                self.text_regions, overwrite, overwrite, overwrite
+            )
             self.parent_screen.subtool_completed(True)
             # return
             self.parent_screen.copy_view(self)
@@ -564,10 +788,12 @@ class ChartTextAnnotator(BaseImageAnnotator):
             raise Exception("Not Implemented")
 
     def btn_confirm_cancel_click(self, button):
-        if self.edition_mode in [ChartTextAnnotator.ModeAddingTextSelect,
-                                 ChartTextAnnotator.ModeConfirmDeleteText,
-                                 ChartTextAnnotator.ModeConfirmExit,
-                                 ChartTextAnnotator.ModeConfirmOverwrite]:
+        if self.edition_mode in [
+            ChartTextAnnotator.ModeAddingTextSelect,
+            ChartTextAnnotator.ModeConfirmDeleteText,
+            ChartTextAnnotator.ModeConfirmExit,
+            ChartTextAnnotator.ModeConfirmOverwrite,
+        ]:
             # return to navigation
             self.set_editor_mode(ChartTextAnnotator.ModeNavigate)
         else:
@@ -576,8 +802,11 @@ class ChartTextAnnotator(BaseImageAnnotator):
 
     def get_next_polygon(self, click_x, click_y):
 
-        if (len(self.text_regions) > 0 and
-            self.text_regions[-1].axis_aligned_rectangle_ratio() < ChartTextAnnotator.MinRectangleRatio):
+        if (
+            len(self.text_regions) > 0
+            and self.text_regions[-1].axis_aligned_rectangle_ratio()
+            < ChartTextAnnotator.MinRectangleRatio
+        ):
             # simply copy as a polygon centered on the click point
 
             # copy and scale to current view ...
@@ -598,13 +827,21 @@ class ChartTextAnnotator(BaseImageAnnotator):
                 rect_w, rect_h = 40, 20
             else:
                 # axis aligned container rectangle from last bbox
-                min_x, min_y, max_x, max_y = self.text_regions[-1].get_axis_aligned_rectangle()
+                min_x, min_y, max_x, max_y = self.text_regions[
+                    -1
+                ].get_axis_aligned_rectangle()
 
                 rect_w = (max_x - min_x) * self.view_scale
                 rect_h = (max_y - min_y) * self.view_scale
 
-            points = np.array([[click_x, click_y], [click_x + rect_w, click_y],
-                               [click_x + rect_w, click_y + rect_h], [click_x, click_y + rect_h]])
+            points = np.array(
+                [
+                    [click_x, click_y],
+                    [click_x + rect_w, click_y],
+                    [click_x + rect_w, click_y + rect_h],
+                    [click_x, click_y + rect_h],
+                ]
+            )
 
         return points
 
@@ -636,7 +873,6 @@ class ChartTextAnnotator(BaseImageAnnotator):
                         self.btn_text_edit_click(None)
                         break
 
-
     def btn_text_add_click(self, button):
         self.set_editor_mode(ChartTextAnnotator.ModeAddingTextSelect)
 
@@ -653,14 +889,20 @@ class ChartTextAnnotator(BaseImageAnnotator):
 
                 # ... copy points to selection canvas ...
                 polygon = self.tempo_edit_text.position_polygon.copy() * self.view_scale
-                self.canvas_select.update_polygon_element("selection_polygon", polygon, True)
+                self.canvas_select.update_polygon_element(
+                    "selection_polygon", polygon, True
+                )
                 # ... copy type to list of types
-                self.lbx_edit_type.change_option_selected(str(self.tempo_edit_text.type))
+                self.lbx_edit_type.change_option_selected(
+                    str(self.tempo_edit_text.type)
+                )
                 # ... copy transcript to textbox
                 self.txt_edit_text.updateText(self.tempo_edit_text.value)
                 self.sub_container_text.recalculate_size()
 
-                self.canvas_display.elements[str(self.tempo_edit_text.id)].visible = False
+                self.canvas_display.elements[
+                    str(self.tempo_edit_text.id)
+                ].visible = False
 
                 self.set_editor_mode(ChartTextAnnotator.ModeEditingText)
                 break
@@ -719,7 +961,9 @@ class ChartTextAnnotator(BaseImageAnnotator):
             print("-> Must Provide Transcription")
             return
 
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
         text_type = int(self.lbx_edit_type.selected_option_value)
         text_value = self.txt_edit_text.text.strip()
 
@@ -731,8 +975,12 @@ class ChartTextAnnotator(BaseImageAnnotator):
             # add to the GUI
             display = self.get_text_display(text)
             self.lbx_text_list.add_option(str(next_id), display)
-            self.canvas_display.add_polygon_element(str(text.id), text.position_polygon.copy() * self.view_scale,
-                                                    self.canvas_colors[text.type], self.canvas_sel_colors[text.type])
+            self.canvas_display.add_polygon_element(
+                str(text.id),
+                text.position_polygon.copy() * self.view_scale,
+                self.canvas_colors[text.type],
+                self.canvas_sel_colors[text.type],
+            )
             self.data_changed = True
             # return  ...
             self.set_editor_mode(ChartTextAnnotator.ModeNavigate)
@@ -749,10 +997,15 @@ class ChartTextAnnotator(BaseImageAnnotator):
             # update list
             self.lbx_text_list.update_option_display(key_str, display)
             # update and make canvas representation of the text region visible again ..
-            canvas_points = self.tempo_edit_text.position_polygon.copy() * self.view_scale
+            canvas_points = (
+                self.tempo_edit_text.position_polygon.copy() * self.view_scale
+            )
             self.canvas_display.update_polygon_element(key_str, canvas_points, True)
-            self.canvas_display.update_custom_colors(key_str, self.canvas_colors[self.tempo_edit_text.type],
-                                                     self.canvas_sel_colors[self.tempo_edit_text.type])
+            self.canvas_display.update_custom_colors(
+                key_str,
+                self.canvas_colors[self.tempo_edit_text.type],
+                self.canvas_sel_colors[self.tempo_edit_text.type],
+            )
 
             # remove temporal reference
             self.tempo_edit_text = None
@@ -835,15 +1088,22 @@ class ChartTextAnnotator(BaseImageAnnotator):
         src_pts = rbox.astype(np.float32)
         # coordinate of the points in box points after the rectangle has been straightened
         # this step needs order_points to be called on src
-        dst_pts = np.array([[0, 0],
-                            [width - 1, 0],
-                            [width - 1, height - 1],
-                            [0, height - 1]], dtype="float32")
+        dst_pts = np.array(
+            [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]],
+            dtype="float32",
+        )
         # the perspective transformation matrix
         M = cv2.getPerspectiveTransform(src_pts, dst_pts)
         # directly warp the rotated rectangle to get the straightened rectangle
-        warped = cv2.warpPerspective(img, M, (width, height), None, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT,
-                                     (255, 255, 255))
+        warped = cv2.warpPerspective(
+            img,
+            M,
+            (width, height),
+            None,
+            cv2.INTER_LINEAR,
+            cv2.BORDER_CONSTANT,
+            (255, 255, 255),
+        )
         return warped
 
     def crop_axis_aligned_rectangle(self, img, text_polygon, rotation):
@@ -863,18 +1123,18 @@ class ChartTextAnnotator(BaseImageAnnotator):
         # apply rotation ... (if any)
         if rotation == ChartTextAnnotator.Rotation90:
             M = cv2.getRotationMatrix2D((0, 0), -90, 1)
-            M[0, 2] += (h - 1)
+            M[0, 2] += h - 1
             text_img = cv2.warpAffine(text_img, M, (h, w))
 
         elif rotation == ChartTextAnnotator.Rotation180:
             M = cv2.getRotationMatrix2D((0, 0), -180, 1)
-            M[0, 2] += (w - 1)
-            M[1, 2] += (h - 1)
+            M[0, 2] += w - 1
+            M[1, 2] += h - 1
             text_img = cv2.warpAffine(text_img, M, (w, h))
 
         elif rotation == ChartTextAnnotator.Rotation270:
             M = cv2.getRotationMatrix2D((0, 0), 90, 1)
-            M[1, 2] += (w - 1)
+            M[1, 2] += w - 1
             text_img = cv2.warpAffine(text_img, M, (h, w))
 
         return text_img
@@ -884,44 +1144,62 @@ class ChartTextAnnotator(BaseImageAnnotator):
             print("PyTesseract not found, please install to enable this function")
             return
 
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
         print(text_polygon)
 
         if rotation == ChartTextAnnotator.RotationAuto:
             text_polygon = self.order_points(text_polygon)
             text_img = self.crop_rotated_rectangle(self.base_rgb_image, text_polygon)
         else:
-            text_img = self.crop_axis_aligned_rectangle(self.base_rgb_image, text_polygon, rotation)
+            text_img = self.crop_axis_aligned_rectangle(
+                self.base_rgb_image, text_polygon, rotation
+            )
 
-        result = OCR.image_to_string(text_img, config='--psm 6')
+        result = OCR.image_to_string(text_img, config="--psm 6")
         self.txt_edit_text.updateText(result)
         self.sub_container_text.recalculate_size()
 
-        #if result.strip() == "":
+        # if result.strip() == "":
         cv2.imwrite("TEMPO_CHECK_OCR_2.png", text_img)
 
         print("-> Tesseract Result: " + result)
 
     def btn_edit_force_box_click(self, button):
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
 
         poly = Polygon(text_polygon)
         minx, miny, maxx, maxy = poly.bounds
 
-        text_polygon = np.array([[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]])
-        self.canvas_select.elements["selection_polygon"].update(text_polygon * self.view_scale)
+        text_polygon = np.array(
+            [[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]]
+        )
+        self.canvas_select.elements["selection_polygon"].update(
+            text_polygon * self.view_scale
+        )
 
     def btn_edit_force_quad_click(self, button):
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
 
         rot_rect = cv2.minAreaRect(text_polygon.reshape(4, 1, 2).astype(np.float32))
-        quad_points = self.order_points(cv2.boxPoints(rot_rect)).astype(text_polygon.dtype)
+        quad_points = self.order_points(cv2.boxPoints(rot_rect)).astype(
+            text_polygon.dtype
+        )
 
-        self.canvas_select.elements["selection_polygon"].update(quad_points * self.view_scale)
+        self.canvas_select.elements["selection_polygon"].update(
+            quad_points * self.view_scale
+        )
 
     def btn_edit_shrink_box_click(self, button):
         # first, make sure to force the selected polygon into a box
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
 
         h, w, _ = self.base_rgb_image.shape
 
@@ -936,7 +1214,9 @@ class ChartTextAnnotator(BaseImageAnnotator):
         # find a tighter box ... based on containment of CC's
         # first, we need a binarized version of the input image ...
         gray_bbox_cut = self.base_gray_image[miny:maxy, minx:maxx, 0]
-        otsu_t, binarized_cut = cv2.threshold(gray_bbox_cut, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        otsu_t, binarized_cut = cv2.threshold(
+            gray_bbox_cut, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
 
         total_w = (binarized_cut == 255).sum()
         total_b = (binarized_cut == 0).sum()
@@ -975,33 +1255,80 @@ class ChartTextAnnotator(BaseImageAnnotator):
         if gap_y > 0:
             maxy -= gap_y
 
-        text_polygon = np.array([[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]])
-        self.canvas_select.elements["selection_polygon"].update(text_polygon * self.view_scale)
+        text_polygon = np.array(
+            [[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy]]
+        )
+        self.canvas_select.elements["selection_polygon"].update(
+            text_polygon * self.view_scale
+        )
 
     def btn_edit_shrink_quad_click(self, button):
-        text_polygon = self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        print("-------------")
+        print("HEY THIS IS THE SHRINK QUAD CLICK FUNCTION")
+        text_polygon = (
+            self.canvas_select.elements["selection_polygon"].points / self.view_scale
+        )
         h, w, _ = self.base_rgb_image.shape
+
+        poly = Polygon(text_polygon)
+        minx, miny, maxx, maxy = poly.bounds
+
+        minx = int(max(minx, 0.0))
+        maxx = int(min(maxx, w))
+        miny = int(max(miny, 0.0))
+        maxy = int(min(maxy, h))
+
+        # adding the B/W checking from shrink box function
+        gray_bbox_cut = self.base_gray_image[miny:maxy, minx:maxx, 0]
+        otsu_t, binarized_cut = cv2.threshold(
+            gray_bbox_cut, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
+
+        total_w = (binarized_cut == 255).sum()
+        total_b = (binarized_cut == 0).sum()
 
         # find pixels contained within bbox
         # ... create a mask for the container polygon ...
         polygon_mask = np.zeros((h, w), dtype=np.uint8)
         cv2.fillPoly(polygon_mask, [text_polygon.astype(np.int32)], (255,))
         # ... match binary CC pixels with polygon mask ...
-        pixels_on_quad = np.logical_and(polygon_mask, self.panel_binary)
+
+        # check if binarize image should be inverted (or not)
+        if total_w > total_b:
+            # assume background is light and text is dark (most common)
+            # invert to get text in white and black background
+            pixels_on_quad = np.logical_and(polygon_mask, self.panel_binary)
+        else:
+            pixels_on_quad = np.logical_and(polygon_mask, 255 - self.panel_binary)
+
+        if binarized_cut.sum() == 0:
+            print("The Bounding Box seems empty")
+            return
+
         cc_ys, cc_xs = np.nonzero(pixels_on_quad)
 
         # find a minimum rotated box that contains all of these pixels
-        pixels_coords = np.vstack((cc_xs, cc_ys)).transpose().reshape((cc_xs.shape[0], 1, 2))
+        pixels_coords = (
+            np.vstack((cc_xs, cc_ys)).transpose().reshape((cc_xs.shape[0], 1, 2))
+        )
         rr_center, rr_size, rr_angle = cv2.minAreaRect(pixels_coords.astype(np.float32))
         # ... expand the box using the default margin ...
-        rr_size = (rr_size[0] + ChartTextAnnotator.TightQuadMargin, rr_size[1] + ChartTextAnnotator.TightQuadMargin)
+        rr_size = (
+            rr_size[0] + ChartTextAnnotator.TightQuadMargin,
+            rr_size[1] + ChartTextAnnotator.TightQuadMargin,
+        )
 
         # convert rotated bbox to polygon ...
         rot_rect = rr_center, rr_size, rr_angle
-        quad_points = self.order_points(cv2.boxPoints(rot_rect)).astype(text_polygon.dtype)
+        quad_points = self.order_points(cv2.boxPoints(rot_rect)).astype(
+            text_polygon.dtype
+        )
 
         # set the new polygon ...
-        self.canvas_select.elements["selection_polygon"].update(quad_points * self.view_scale)
+        self.canvas_select.elements["selection_polygon"].update(
+            quad_points * self.view_scale
+        )
+        print("-------------")
 
     def btn_text_tighten_boxes_click(self, button):
         # remove any initial selection ...
@@ -1038,7 +1365,9 @@ class ChartTextAnnotator(BaseImageAnnotator):
         self.set_editor_mode(ChartTextAnnotator.ModeNavigate)
 
     def admin_confirm_keep(self, discard_legend, discard_axes, discard_data):
-        self.panel_info.overwrite_text(self.text_regions, discard_legend, discard_axes, discard_data)
+        self.panel_info.overwrite_text(
+            self.text_regions, discard_legend, discard_axes, discard_data
+        )
         self.parent_screen.subtool_completed(True)
         # return
         self.parent_screen.copy_view(self)
