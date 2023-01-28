@@ -2,7 +2,7 @@ from numpy import array, unique
 from .dot_values import DotValues
 from .axis_values import AxisValues
 from .axes_info import AxesInfo
-
+from statistics import mean
 class DotData:
     DataVersion = 1.0
 
@@ -116,6 +116,10 @@ class DotData:
 
                 if x_axis.values_type == AxisValues.ValueTypeNumerical or x_axis.values_type == AxisValues.ValueTypeNumericalInt:
                     proj_x_val = AxisValues.Project(chart_info.axes, x_axis, False, line_x_pixel)
+                    # print("-------------------------")
+                    # print("PROJECTED X VALUE:")
+                    # print(proj_x_val)
+                    # print("-------------------------")
                 else:
                     # categorical x axis ... find closest category
                     proj_x_val = AxisValues.FindClosestValue(chart_info.axes, x_axis, False, line_x_pixel)
@@ -134,26 +138,69 @@ class DotData:
                     data_series_point["y"] = proj_y_val
 
                 current_data_series.append(data_series_point)
-
+        
             if series_text is None:
                 series_name = "[unnamed data series #{0:d}]".format(series_idx)
             else:
                 series_name = series_text.value
-            # if there's a single-axis vertical dot graph, collate the points  
+            # if there's a single-axis vertical dot graph, collate the points.
+            # this behaves differently based on numerical / categorical axes because we need to catch in-between values 
             if chart_info.axes.x1_axis and chart_info.axes.y1_axis is None:
-                collated_data_series = [] 
-                # plural data series: all of the points in the chart (not unique)
-                plural_data_series = [list(each.values())[0] for each in current_data_series] 
-                # tickvalues: list representation of the tick values on x axis
-                tickvalues = [each.value for each in chart_info.axes.get_axis_labels(AxesInfo.AxisX1)]
-                # values / counts: values and frequency of values in the chart
-                values, counts = unique(array(plural_data_series), return_counts=True)
-                counts = [int(item) for item in counts]
-                for each in tickvalues:
-                    if each in values:
-                        collated_data_series.append({each : counts[list(values).index(each)]})
-                    else:
-                        collated_data_series.append({each : 0})
+                if chart_info.axes.x1_axis.values_type == AxisValues.ValueTypeNumerical or chart_info.axes.x1_axis.values_type == AxisValues.ValueTypeNumericalInt:
+                    collated_data_series = []
+                    # plural data series: all of the points in the chart (not unique)
+                    plural_data_series = sorted([list(each.values())[0] for each in current_data_series])
+                    # xvalues: list representation of all entries on x axis
+                    # to find these, we need a margin by which we can group these together. for now, 1/10th of the pixels in a tick converted to value 
+                    tickvalues = sorted([float(each.value) for each in chart_info.axes.get_axis_labels(AxesInfo.AxisX1)])
+                    ticks = [each.position for each in chart_info.axes.x1_axis.ticks]
+                    sorted_tick_positions = sorted(ticks)
+                    value_per_tick = abs(tickvalues[0] - tickvalues[1])
+                    pixels_per_tick = sorted_tick_positions[1] - sorted_tick_positions[0]
+                    value_per_pixel = value_per_tick / pixels_per_tick
+                    # we want 1/20 of the pixel per tick converted to value 
+                    margin = (pixels_per_tick / 20 ) * value_per_pixel
+                    # print("***")
+                    # print("pixels in a whole tick: ", pixels_per_tick) 
+                    # print("value in a whole tick:", value_per_tick)
+                    # print("margin value: ", margin)
+                    # print("***")
+                    # to get the interpolated data series, add 1 to a bucket for each point in the sorted plural data series-
+                    # making a new bucket every time the distance between the most recent two values is greater than our margin.
+
+                    points = []
+                    points.append([plural_data_series[0]])
+                    active_point_index = 0
+                    for i in range(1, len(plural_data_series)):
+                        # when we've found a point within the margin of the avg for our bucket 
+                        if abs(abs(plural_data_series[i]) - abs(mean(points[active_point_index]))) <= margin:
+                            # print(abs(abs(plural_data_series[i]) - abs(mean(points[active_point_index]))), "was less than ", margin) 
+                            points[active_point_index].append(plural_data_series[i])
+                        # when we've found a point outside the margin, make a new entry
+                        else:
+                            points.append([plural_data_series[i]])
+                            active_point_index += 1
+
+                    
+                    
+                    for each in points:
+                        collated_data_series.append({mean(each) : len(each)})
+
+                else:
+                    collated_data_series = [] 
+                    # plural data series: all of the points in the chart (not unique)
+                    plural_data_series = [list(each.values())[0] for each in current_data_series] 
+                    # tickvalues: list representation of the tick values on x axis
+                    tickvalues = [each.value for each in chart_info.axes.get_axis_labels(AxesInfo.AxisX1)]
+                    # values / counts: values and frequency of values in the chart
+                    values, counts = unique(array(plural_data_series), return_counts=True)
+                    counts = [int(item) for item in counts]
+                    for each in tickvalues:
+                        if each in values:
+                            collated_data_series.append({each : counts[list(values).index(each)]})
+                        else:
+                            collated_data_series.append({each : 0})
+                
                 current_data_series = collated_data_series
 
             final_data_series = {

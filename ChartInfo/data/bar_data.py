@@ -2,6 +2,7 @@
 import numpy as np
 from shapely.geometry import Polygon
 from munkres import Munkres
+from math import isnan
 
 from .series_sorting import SeriesSorting
 from .axes_info import AxesInfo
@@ -262,6 +263,31 @@ class BarData:
 
         # now infer data quantities based on polygons ...
         # for each data series ...
+        
+        print("-------------------------------------------") 
+        #this is for off-by-one errors caused by histogram style labels 
+        tick_categories = chart_info.axes.get_axis_labels(AxesInfo.AxisX1)
+        if len(tick_categories) == len(self.categories) + 1:
+            #we need to see if the extra tick made by annotators should be at the beginning or the end of the series
+            print([each.value for each in tick_categories])
+            print([each.value for each in self.categories])
+            print(self.bar_lengths)
+            #if the 0 indices match, add nan to the end of the bar series
+            if tick_categories[0].value == self.categories[0].value:
+                self.categories = tick_categories 
+                self.bar_lengths[0].append(float('nan'))
+                bar_baselines[0][max(bar_baselines[0].keys()) + 1] = (0, 0)
+            #if the -1 indices match, add nan to the beginning 
+            elif tick_categories[-1].value == self.categories[-1].value:
+                self.categories = tick_categories 
+                self.bar_lengths[0].insert(0, float('nan'))
+            #we're not able to deal with this otherwise 
+            else:
+                raise Exception("invalid type of bar chart for annotation (histogram with sub-tick values)")
+            print([each.value for each in tick_categories])
+            print([each.value for each in self.categories])
+            print(bar_baselines)
+        print("-------------------------------------------") 
         data_series = []
         for series_idx, series_text in enumerate(self.data_series):
             series_data = []
@@ -275,14 +301,20 @@ class BarData:
 
                 baseline, bar_idx = bar_baselines[series_idx][cat_idx]
 
+                bar_length = self.bar_lengths[series_idx][cat_idx]
                 if bar_idx_to_value_label is not None:
                     # use existing value label values ...
                     data_point["y"] = bar_idx_to_value_label[bar_idx]
+                elif isnan(bar_length):
+                    print("bar length was nan") 
+                    data_point["y"] = bar_length
                 else:
                     # to get the value of the bar, we need to get the numerical value of the base of the bar
                     # and subtract it from the value of the top of the bar.... this is scale dependent
-                    bar_length = self.bar_lengths[series_idx][cat_idx]
                     if self.bar_vertical:
+
+                        data_point["y"] = bar_length
+                        
                         bar_max = baseline - bar_length
 
                         # project min and max bar heights
